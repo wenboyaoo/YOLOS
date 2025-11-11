@@ -19,7 +19,7 @@ decay_rate: 0.1
 det_token_num: 100
 backbone: vanilla_vit # options: ["vanilla_vit", "dinov3"]
 backbone_size: small
-finetune: False
+finetune: True
 ## vanilla_vit
 pre_trained: # set imagenet pretrained model path if not train yolos from scatch
 init_pe_size: [512,864]
@@ -39,7 +39,7 @@ coco_path: data/voc2012/
 coco_panoptic_path:
 remove_difficult: False
 
-output_dir: outputs/vanilla_vit/small/voc/frozen
+output_dir: outputs/vanilla_vit/small/voc/fintune
 device: cuda
 seed: 42
 resume: # resume from checkpoint

@@ -7,6 +7,7 @@ transformers>=4.40.0
 huggingface-hub>=0.20.0
 einops>=0.6.0
 typing_extensions
+hf_transfer
 
 # Data processing & math
 numpy

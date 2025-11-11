@@ -4,7 +4,7 @@ from typing import Optional
 from typing_extensions import Unpack
 
 from transformers import DINOv3ViTConfig, DINOv3ViTModel
-from transformers.utils import TransformersKwargs, auto_docstring
+from transformers.utils import TransformersKwargs
 from transformers.utils.generic import check_model_inputs
 from transformers.modeling_outputs import BaseModelOutputWithPooling
 
@@ -42,7 +42,6 @@ class DINOv3ViTDet(DINOv3ViTModel):
             self.det_pos_embed.requires_grad = True
 
     @check_model_inputs
-    @auto_docstring
     def forward(
         self,
         pixel_values: torch.Tensor,

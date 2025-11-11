@@ -135,7 +135,7 @@ def make_coco_transforms(image_set, args):
     ])
 
 
-    if 'tiny' in args.backbone_name:
+    if 'tiny' in args.backbone_size:
         scales = [256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512, 528, 544, 560, 576, 592, 608]
     else:
         scales = [480, 496, 512, 528, 544, 560, 576, 592, 608, 624, 640, 656, 672, 688, 704, 720, 736, 752, 768, 784, 800]

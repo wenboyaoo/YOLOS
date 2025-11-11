@@ -151,6 +151,7 @@ def main(args):
     print('number of params:', n_parameters)
 
     def build_optimizer(model, args):
+        skip = set()
         if hasattr(model.backbone, 'no_weight_decay'):
             skip = model.backbone.no_weight_decay()
         head = []
