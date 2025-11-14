@@ -46,7 +46,7 @@ seed: 42
 resume: # resume from checkpoint
 start_epoch: 0
 eval: False
-num_workers: 64
+num_workers: 32
 # distributed training parameters
 world_size: 1
 dist_url: env://

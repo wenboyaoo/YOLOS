@@ -40,13 +40,14 @@ coco_path: data/voc2012/
 coco_panoptic_path:
 remove_difficult: False
 
-output_dir: outputs/vanilla_vit/small/voc/
+output_dir: outputs/vanilla_vit/small/voc/finetune
 device: cuda
 seed: 42
 resume: # resume from checkpoint
 start_epoch: 0
 eval: False
-num_workers: 64
+num_workers: 32
 # distributed training parameters
+distributed: False
 world_size: 1
 dist_url: env://
