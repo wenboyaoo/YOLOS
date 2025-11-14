@@ -27,13 +27,13 @@ class DINOv3ViTDet(DINOv3ViTModel):
         super().__init__(config)
 
         self.gradient_checkpointing = config.use_checkpoint
-
+        self.initializer_range = config.initializer_range
         self.num_det_token = config.num_det_token
         self.det_tokens = self.embeddings.register_tokens
-        torch.nn.init.trunc_normal_(self.det_tokens, std=config.initializer_range)
+        torch.nn.init.trunc_normal_(self.det_tokens, std=self.initializer_range)
 
         self.det_pos_embed = torch.nn.Parameter(torch.zeros(1, self.num_det_token, config.hidden_size))
-        torch.nn.init.trunc_normal_(self.det_pos_embed, std=config.initializer_range)
+        torch.nn.init.trunc_normal_(self.det_pos_embed, std=self.initializer_range)
 
         if not config.finetune:
             for p in self.parameters():
@@ -89,7 +89,23 @@ class DINOv3ViTDet(DINOv3ViTModel):
             last_hidden_state=sequence_output,
             pooler_output=pooled_output,
         )
-    
+
+    @torch.jit.ignore
+    def no_weight_decay(self):
+        return {'det_pos_embed', 'embeddings.cls_token', 'embeddings.register_tokens'}
+
+    def init_unloaded_parameters(self, info):
+        param_dict = dict(self.named_parameters())
+
+        unloaded = info.get("missing_keys", []) + info.get("mismatched_keys", [])
+
+        for name in unloaded:
+            if name in param_dict:
+                p = param_dict[name]
+                print(f"[init unloaded] {name} {tuple(p.shape)}")
+                torch.nn.init.trunc_normal_(p.data, std=self.config.initializer_range)
+
+
 class DINOv3Backbone(DINOv3ViTDet):
     def forward(self, x):
         return super().forward(x, bool_masked_pos = None, head_mask = None).last_hidden_state[:, 1:1+self.num_det_token,:]
@@ -98,7 +114,8 @@ def build_dinov3(size='small', pretrained=False, pretrained_path=None, **kwargs)
     assert size in DINOV3_CONFIG.keys(), f'Unknown model size: {size}'
     if pretrained:
         path = pretrained_path or DINOV3_CONFIG[size]['repo_id']
-        model = DINOv3Backbone.from_pretrained(path, ignore_mismatched_sizes=True, **kwargs)
+        model, info = DINOv3Backbone.from_pretrained(path, ignore_mismatched_sizes=True, output_loading_info=True, **kwargs)
+        model.init_unloaded_parameters(info)
     else:
         config = DINOv3ViTDetConfig.from_pretrained(DINOV3_CONFIG[size]['repo_id'], **kwargs)
         model = DINOv3Backbone(config)
