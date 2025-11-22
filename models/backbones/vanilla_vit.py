@@ -205,7 +205,7 @@ class VisionTransformer(nn.Module):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
 
-    def finetune_det(self, img_size=[800, 1344], det_token_num=100, mid_pe_size=None, use_checkpoint=False, freeze=False):
+    def finetune_det(self, img_size=[800, 1344], det_token_num=100, mid_pe_size=None, use_checkpoint=False):
         # import pdb;pdb.set_trace()
 
         import math
@@ -241,14 +241,6 @@ class VisionTransformer(nn.Module):
             self.has_mid_pe = True
             self.mid_pe_size = mid_pe_size
         self.use_checkpoint=use_checkpoint
-
-        if freeze:
-            for p in self.parameters():
-                p.requires_grad = False
-            self.det_token.requires_grad = True
-            self.pos_embed.requires_grad = True
-            if self.has_mid_pe:
-                self.mid_pos_embed.requires_grad = True
 
 
 
@@ -471,7 +463,7 @@ VANILLA_VIT_CONFIG = {
     'base':{'builder':base, 'hidden_dim':768}
 }
 
-def build_vanilla_vit(size='small', pretrained=False, pretrained_path=None, freeze=False, num_det_token=100, use_checkpoint=False, init_pe_size=[800,1344], mid_pe_size =[800,1344],**kwargs):
+def build_vanilla_vit(size='small', pretrained=False, pretrained_path=None, num_det_token=100, use_checkpoint=False, init_pe_size=[800,1344], mid_pe_size =[800,1344],**kwargs):
     assert size in VANILLA_VIT_CONFIG.keys(), f'Unknown model size: {size}'
     assert (not pretrained) or pretrained_path, f'If pretrained is set to True, you must specify a valid pretrained_path'
 
@@ -480,6 +472,6 @@ def build_vanilla_vit(size='small', pretrained=False, pretrained_path=None, free
         model = builder(pretrained=pretrained_path, **kwargs)
     else:
         model = builder(pretrained=None, **kwargs)
-    model.finetune_det(det_token_num=num_det_token, img_size=init_pe_size, mid_pe_size=mid_pe_size, use_checkpoint=use_checkpoint, freeze=freeze)
+    model.finetune_det(det_token_num=num_det_token, img_size=init_pe_size, mid_pe_size=mid_pe_size, use_checkpoint=use_checkpoint)
     return model, VANILLA_VIT_CONFIG[size]['hidden_dim']
 

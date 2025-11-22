@@ -66,7 +66,7 @@ def get_args_parser():
                         help="Name of the backbone to use"),
     parser.add_argument('--backbone_size', default='dinov3', type=str,
                         help="Size of the backbone to use"),
-    parser.add_argument('--freeze_backbone', action="store_true"),
+    parser.add_argument('--unfreeze', nargs='+', default=[], help="list of prefix to unfreeze"),
     parser.add_argument('--pretrained',action="store_true"),
     parser.add_argument('--pretrained_path', default= None),
     parser.add_argument('--init_pe_size', nargs='+', type=int,
@@ -104,6 +104,8 @@ def get_args_parser():
                         help='start epoch')
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--num_workers', default=2, type=int)
+    parser.add_argument('--bf16', action='store_true',
+                        help='Enable bfloat16 mixed precision training')
 
     # distributed training parameters
     parser.add_argument('--world_size', default=1, type=int,
@@ -145,7 +147,7 @@ def main(args):
 
     model_without_ddp = model
     if args.distributed:
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu],find_unused_parameters=True)
         model_without_ddp = model.module
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('number of params:', n_parameters)
@@ -215,7 +217,7 @@ def main(args):
             checkpoint = torch.hub.load_state_dict_from_url(
                 args.resume, map_location='cpu', check_hash=True)
         else:
-            checkpoint = torch.load(args.resume, map_location='cpu')
+            checkpoint = torch.load(args.resume, map_location='cpu', weights_only=False)
         model_without_ddp.load_state_dict(checkpoint['model'])
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
             optimizer.load_state_dict(checkpoint['optimizer'])
@@ -239,7 +241,7 @@ def main(args):
             sampler_train.set_epoch(epoch)
         train_stats = train_one_epoch(
             model, criterion, data_loader_train, optimizer, device, epoch,
-            args.clip_max_norm, tb_writer=tb_writer)
+            args.clip_max_norm, tb_writer=tb_writer, use_bf16=args.bf16)
         lr_scheduler.step(epoch)
         if args.output_dir:
             checkpoint_paths = [output_dir / 'checkpoint.pth']
