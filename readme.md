@@ -1,6 +1,6 @@
 # DINOv3-YOLOS Detection
 
-A minimal experimental repo for running YOLOS object detection with a DINOv3 ViT backbone.  
+A experimental repo for running YOLOS object detection with a DINOv3 ViT backbone.  
 This is a lightweight fork of the original `hustvl/YOLOS` codebase, with added support for loading DINOv3 models from HuggingFace and running experiments on VOC.
 
 ## Run
